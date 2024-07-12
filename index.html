@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>520 A.M</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        text-align: center;
+        background-color: #666;
+      }
+      .container {
+        max-height: 500px;
+        overflow: hidden;
+      }
+      li {
+        height: 30px;
+        line-height: 30px;
+        list-style: none;
+        transition: 0.4s;
+      }
+      .active {
+        transform: scale(1.2);
+        color: #fff;
+        /* transition: 0.5s; */
+      }
+    </style>
+  </head>
+  <body>
+    <audio src="./5-20AM.m4a" controls style="margin: 10px auto"></audio>
+    <div class="container">
+      <ul></ul>
+    </div>
+    <script>
+      let lrc = undefined;
+      //获取lrc歌词文件
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", "5_20AM.lrc", true);
+      xhr.send(null);
+      xhr.responseType = "text";
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            lrc = xhr.responseText;
+            let list = lrc.split("\n");
+            // console.log(list);
+            lrcarray = list.map((e, i) => {
+              let splitIndex = e.indexOf("]");
+              return {
+                time: transformTime(e.substring(1, splitIndex - 1)),
+                word: e.substring(splitIndex + 1),
+              };
+            });
+            render();
+          } else {
+            console.error(xhr.statusText);
+          }
+        }
+      };
+
+      //相关的dom
+      let doms = {
+        audio: document.querySelector("audio"),
+        ul: document.querySelector("ul"),
+        container: document.querySelector(".container"),
+      };
+
+      let lrcarray = [];
+
+      function transformTime(str) {
+        let index = str.indexOf(":");
+        let seconds = +str.substring(0, index) * 60;
+        return seconds + Number(str.substring(index + 1));
+      }
+
+      function render() {
+        let fragment = document.createDocumentFragment();
+        lrcarray.forEach((e, i) => {
+          let li = document.createElement("li");
+          li.appendChild(document.createTextNode(e.word));
+          fragment.appendChild(li);
+        });
+        doms.ul.appendChild(fragment);
+        ulHeight = doms.ul.clientHeight;
+        liHeight = doms.ul.children[0].clientHeight;
+        containerHeight = doms.container.clientHeight;
+      }
+
+      function findIndex(time) {
+        for (let [i, e] of Object.entries(lrcarray)) {
+          if (e.time > time) {
+            return i - 1;
+          }
+        }
+        return lrcarray.length - 1;
+      }
+
+      let liHeight = undefined;
+      let ulHeight = undefined;
+      let containerHeight = undefined;
+      let active = []
+      doms.audio.addEventListener("timeupdate", function () {
+        let idx = findIndex(this.currentTime);
+        active.forEach((e)=>{
+            e.classList.remove('active')
+        })
+        active.push(doms.ul.children[idx])
+        doms.ul.children[idx].classList.add("active");
+        if(idx*liHeight>containerHeight/2){
+            doms.ul.style.translate = `0 ${containerHeight/2-idx*liHeight}px`;
+        }
+        else{
+            doms.ul.style.translate = '0 0'
+        }
+      });
+    </script>
+  </body>
+</html>
