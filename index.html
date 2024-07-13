@@ -105,9 +105,10 @@
       let active = []
       doms.audio.addEventListener("timeupdate", function () {
         let idx = findIndex(this.currentTime);
-        active.forEach((e)=>{
-            e.classList.remove('active')
-        })
+        while(active.length){
+          active.at(-1).classList.remove('active');
+          active.pop();
+        }
         active.push(doms.ul.children[idx])
         doms.ul.children[idx].classList.add("active");
         if(idx*liHeight>containerHeight/2){
